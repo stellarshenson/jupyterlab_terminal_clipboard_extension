@@ -31,7 +31,10 @@ async function writeToClipboard(text: string): Promise<boolean> {
       await navigator.clipboard.writeText(text);
       return true;
     } catch (err) {
-      console.warn(`[${PLUGIN_ID}] Clipboard API failed, trying fallback:`, err);
+      console.warn(
+        `[${PLUGIN_ID}] Clipboard API failed, trying fallback:`,
+        err
+      );
     }
   }
 
@@ -72,7 +75,9 @@ function handleOsc52(data: string): boolean {
 
   // Ignore clipboard read requests (security risk, rarely supported)
   if (payload === '?') {
-    console.debug(`[${PLUGIN_ID}] OSC 52 read request ignored (target: ${target})`);
+    console.debug(
+      `[${PLUGIN_ID}] OSC 52 read request ignored (target: ${target})`
+    );
     return true;
   }
 
@@ -134,15 +139,10 @@ function attachOsc52Handler(widget: MainAreaWidget): void {
         disposable.dispose();
       });
 
-      console.debug(
-        `[${PLUGIN_ID}] OSC 52 handler attached to terminal`
-      );
+      console.debug(`[${PLUGIN_ID}] OSC 52 handler attached to terminal`);
     })
     .catch((err: Error) => {
-      console.warn(
-        `[${PLUGIN_ID}] Failed to attach OSC 52 handler:`,
-        err
-      );
+      console.warn(`[${PLUGIN_ID}] Failed to attach OSC 52 handler:`, err);
     });
 }
 
@@ -182,9 +182,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       }
     );
 
-    console.log(
-      `[${PLUGIN_ID}] OSC 52 clipboard handler initialized`
-    );
+    console.log(`[${PLUGIN_ID}] OSC 52 clipboard handler initialized`);
   }
 };
 
