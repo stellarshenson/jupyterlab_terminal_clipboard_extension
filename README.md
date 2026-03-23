@@ -11,29 +11,17 @@
 > [!TIP]
 > This extension is part of the [stellars_jupyterlab_extensions](https://github.com/stellarshenson/stellars_jupyterlab_extensions) metapackage. Install all Stellars extensions at once: `pip install stellars_jupyterlab_extensions`
 
-Copy to clipboard from JupyterLab terminal sessions. This extension bridges the gap between terminal applications and the browser clipboard by intercepting OSC 52 escape sequences and routing them to the browser's Clipboard API. It also installs drop-in replacements for `xclip`, `xsel`, and `wl-copy` so that programs which rely on system clipboard tools work transparently in browser-based terminals.
-
-## How It Works
-
-The extension has two components that work together:
-
-**Frontend plugin** intercepts OSC 52 escape sequences in terminal output. When a terminal application writes `\033]52;c;<base64>\a`, the extension decodes the base64 payload and writes the text to the browser clipboard via `navigator.clipboard.writeText()`.
-
-**Server plugin** installs lightweight shell shims (`xclip`, `xsel`, `wl-copy`) into `~/.local/bin/` on first JupyterLab startup. These shims replace the real clipboard tools only when the originals cannot function (no X11 `DISPLAY` or `WAYLAND_DISPLAY` set). If the real tools are already working, the shims are not installed.
-
-The result is a complete clipboard pipeline:
+Copy to clipboard from JupyterLab terminal sessions. Intercepts OSC 52 escape sequences and routes them to the browser clipboard. Also auto-installs drop-in shims for `xclip`, `xsel`, and `wl-copy` so programs like pass-cli, vim, and tmux can copy to clipboard without an X11 display.
 
 ```
-terminal app -> xclip/xsel (shim) -> OSC 52 escape sequence -> extension -> browser clipboard
+terminal app -> xclip/xsel (shim) -> OSC 52 -> extension -> browser clipboard
 ```
 
 ## Features
 
-- **OSC 52 clipboard interception** - captures clipboard escape sequences emitted by terminal applications
-- **Browser clipboard API integration** - routes terminal clipboard content to the browser's native clipboard
-- **Automatic shim installation** - server plugin deploys `xclip`, `xsel`, and `wl-copy` shims on startup when the real tools are not functional
-- **Smart detection** - only installs shims when system clipboard tools cannot work (no display server), preserves real tools when they are functional
-- **Transparent operation** - works automatically with any terminal program that supports OSC 52 or calls `xclip`/`xsel`/`wl-copy`
+- **OSC 52 clipboard interception** - captures clipboard escape sequences from terminal output
+- **Auto-installing shims** - deploys `xclip`, `xsel`, `wl-copy` replacements to `~/.local/bin/` on startup when real tools are not functional (no display server)
+- **Smart detection** - preserves real clipboard tools when they work, only installs shims when needed
 
 ## Installation
 
@@ -43,25 +31,10 @@ Requires JupyterLab 4.0.0 or higher.
 pip install jupyterlab_terminal_clipboard_extension
 ```
 
-After installation, restart JupyterLab. The server plugin will automatically install clipboard shims to `~/.local/bin/` if needed. Ensure `~/.local/bin` is in your PATH:
+Ensure `~/.local/bin` is in your PATH for the shims to work:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
-```
-
-## Manual Shim Management
-
-The shims can also be managed independently using the included installer script:
-
-```bash
-# Install shims manually
-./tools/install-osc52-shims.sh
-
-# Install to a custom directory
-./tools/install-osc52-shims.sh /usr/local/bin
-
-# Remove shims
-./tools/install-osc52-shims.sh --uninstall
 ```
 
 ## Uninstall

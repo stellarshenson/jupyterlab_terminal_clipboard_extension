@@ -1,6 +1,6 @@
 {
     "name": "jupyterlab_terminal_clipboard_extension",
-    "version": "0.6.4",
+    "version": "1.0.2",
     "description": "Jupyterlab extension to handle copy to clipboard actions in a terminal to allow copy to clipboard of the browser/user",
     "keywords": [
         "jupyter",
@@ -26,7 +26,7 @@
     "style": "style/index.css",
     "repository": {
         "type": "git",
-        "url": ".git"
+        "url": "https://github.com/stellarshenson/jupyterlab_terminal_clipboard_extension.git"
     },
     "scripts": {
         "build": "jlpm build:lib && jlpm build:labextension:dev",
@@ -88,7 +88,8 @@
         "yjs": "^13.5.0"
     },
     "resolutions": {
-        "lib0": "0.2.111"
+        "lib0": "0.2.111",
+        "duplicate-package-checker-webpack-plugin/chalk": "^4.1.2"
     },
     "sideEffects": [
         "style/*.css",
