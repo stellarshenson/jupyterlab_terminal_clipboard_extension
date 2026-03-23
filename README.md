@@ -11,11 +11,7 @@
 > [!TIP]
 > This extension is part of the [stellars_jupyterlab_extensions](https://github.com/stellarshenson/stellars_jupyterlab_extensions) metapackage. Install all Stellars extensions at once: `pip install stellars_jupyterlab_extensions`
 
-Copy to clipboard from JupyterLab terminal sessions. Intercepts OSC 52 escape sequences and routes them to the browser clipboard. Also auto-installs drop-in shims for `xclip`, `xsel`, and `wl-copy` so programs like pass-cli, vim, and tmux can copy to clipboard without an X11 display.
-
-```
-terminal app -> xclip/xsel (shim) -> OSC 52 -> extension -> browser clipboard
-```
+Terminal programs running inside JupyterLab normally cannot copy anything to your clipboard. Tools like password managers, vim, tmux, and other TUI applications that rely on `xclip` or `xsel` fail silently because there is no X11 display in a browser-based terminal. This extension fixes that - when a terminal program copies something, it lands in your browser clipboard so you can paste it anywhere.
 
 ## Features
 
@@ -42,3 +38,15 @@ export PATH="$HOME/.local/bin:$PATH"
 ```bash
 pip uninstall jupyterlab_terminal_clipboard_extension
 ```
+
+## Technical Details
+
+The extension has two components. The **frontend plugin** registers an OSC 52 parser handler on each terminal's xterm.js instance. When a terminal application writes `\033]52;c;<base64>\a`, the handler decodes the payload and writes it to the browser clipboard via `navigator.clipboard.writeText()` with a `document.execCommand('copy')` fallback for HTTP (non-secure) contexts.
+
+The **server plugin** runs on JupyterLab startup and installs lightweight POSIX shell shims into `~/.local/bin/`. These shims replace `xclip`, `xsel`, and `wl-copy` - the system clipboard tools that terminal programs call. Instead of talking to an X11 display, the shims base64-encode the input and emit an OSC 52 escape sequence to `/dev/tty`, which the frontend plugin then intercepts.
+
+```
+terminal app -> xclip/xsel (shim) -> OSC 52 escape sequence -> extension -> browser clipboard
+```
+
+Shims are only installed when the real tools cannot function (no `DISPLAY` or `WAYLAND_DISPLAY` environment variable set). If a real X11 or Wayland clipboard is available, the shims are not deployed and the original tools are preserved.
