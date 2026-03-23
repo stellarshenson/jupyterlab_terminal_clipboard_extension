@@ -1,0 +1,120 @@
+#!/bin/sh
+# wl-copy-osc52 - drop-in replacement for wl-copy that uses OSC 52 escape sequences
+# instead of Wayland clipboard. Designed for use in JupyterLab terminals where
+# no Wayland compositor is available but the terminal emulator supports OSC 52.
+#
+# Supports the same flags as wl-copy:
+#   -c, --clear          clear the clipboard
+#   -p, --primary        use primary selection
+#   -n, --trim-newline   do not copy trailing newline
+#   -o, --paste-once     ignored (no paste server)
+#   -f, --foreground     ignored
+#   -t, --type           ignored (OSC 52 is plain text)
+#   -s, --seat           ignored
+#   -h, --help           show usage
+#   -v, --version        show version
+#
+# Usage:
+#   echo "text" | wl-copy-osc52
+#   wl-copy-osc52 "text to copy"
+#   symlink as 'wl-copy' and place earlier in PATH to override system wl-copy
+#
+# OSC 52 sequence format: ESC ] 52 ; <target> ; <base64-data> BEL
+
+VERSION="1.0.0"
+SELECTION="clipboard"
+CLEAR=0
+TRIM_NEWLINE=0
+
+print_usage() {
+    cat <<'USAGE'
+Usage: wl-copy-osc52 [options] [text to copy]
+Copy content to clipboard via OSC 52 escape sequences (wl-copy-compatible).
+
+Options:
+    -o, --paste-once     Ignored (no paste server with OSC 52)
+    -f, --foreground     Ignored
+    -c, --clear          Clear the clipboard
+    -p, --primary        Use the "primary" selection
+    -n, --trim-newline   Do not copy the trailing newline character
+    -t, --type           Ignored (OSC 52 is plain text)
+    -s, --seat           Ignored
+    -v, --version        Display version info
+    -h, --help           Display this message
+USAGE
+}
+
+# Collect positional arguments (text to copy)
+TEXT_ARGS=""
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -c|--clear)
+            CLEAR=1
+            ;;
+        -p|--primary)
+            SELECTION="primary"
+            ;;
+        -n|--trim-newline)
+            TRIM_NEWLINE=1
+            ;;
+        -o|--paste-once|-f|--foreground)
+            # Ignored
+            ;;
+        -t|--type|-s|--seat)
+            shift  # consume arg, ignore
+            ;;
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -v|--version)
+            echo "wl-copy-osc52 version $VERSION (OSC 52 shim for wl-copy)"
+            exit 0
+            ;;
+        -*)
+            # Ignore unknown flags
+            ;;
+        *)
+            # Positional args are text to copy (wl-copy concatenates with spaces)
+            if [ -z "$TEXT_ARGS" ]; then
+                TEXT_ARGS="$1"
+            else
+                TEXT_ARGS="$TEXT_ARGS $1"
+            fi
+            ;;
+    esac
+    shift
+done
+
+# Map selection to OSC 52 target
+case "$SELECTION" in
+    primary)    OSC_TARGET="p" ;;
+    clipboard)  OSC_TARGET="c" ;;
+esac
+
+# Handle clear
+if [ "$CLEAR" -eq 1 ]; then
+    printf '\033]52;%s;%s\a' "$OSC_TARGET" "" > /dev/tty 2>/dev/null || \
+    printf '\033]52;%s;%s\a' "$OSC_TARGET" ""
+    exit 0
+fi
+
+# Read data from positional args or stdin
+if [ -n "$TEXT_ARGS" ]; then
+    DATA="$TEXT_ARGS"
+else
+    DATA=$(cat)
+fi
+
+# Trim trailing newline if requested
+if [ "$TRIM_NEWLINE" -eq 1 ]; then
+    DATA=$(printf '%s' "$DATA" | sed -e 's/\n$//')
+fi
+
+# Base64 encode
+B64=$(printf '%s' "$DATA" | base64 | tr -d '\n')
+
+# Emit OSC 52 sequence
+printf '\033]52;%s;%s\a' "$OSC_TARGET" "$B64" > /dev/tty 2>/dev/null || \
+printf '\033]52;%s;%s\a' "$OSC_TARGET" "$B64"

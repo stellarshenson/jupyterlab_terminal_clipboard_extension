@@ -14,3 +14,15 @@ def _jupyter_labextension_paths():
         "src": "labextension",
         "dest": "jupyterlab_terminal_clipboard_extension"
     }]
+
+
+def _jupyter_server_extension_points():
+    return [{
+        "module": "jupyterlab_terminal_clipboard_extension"
+    }]
+
+
+def _load_jupyter_server_extension(server_app):
+    """Install OSC 52 clipboard shims when the server extension loads."""
+    from .shim_installer import install_shims
+    install_shims(server_app.log)

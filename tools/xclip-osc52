@@ -1,0 +1,163 @@
+#!/bin/sh
+# xclip-osc52 - drop-in replacement for xclip that uses OSC 52 escape sequences
+# instead of X11 clipboard. Designed for use in JupyterLab terminals where
+# no X display is available but the terminal emulator supports OSC 52.
+#
+# Supports the same flags as xclip for copy operations:
+#   -i, -in         read from stdin (default)
+#   -o, -out        output current selection (not supported, prints warning)
+#   -selection SEL  selection target: primary, secondary, clipboard (default: primary)
+#   -rmlastnl       remove trailing newline
+#   -f              filter mode: copy stdin and also write to stdout
+#   -h, -help       show usage
+#   -version        show version
+#   -silent         suppress messages (default)
+#   -quiet          show messages
+#   -verbose        show detailed messages
+#
+# Usage:
+#   echo "text" | xclip-osc52 -selection clipboard
+#   symlink as 'xclip' and place earlier in PATH to override system xclip
+#
+# OSC 52 sequence format: ESC ] 52 ; <target> ; <base64-data> BEL
+#   target: c = clipboard, p = primary, s = secondary
+
+VERSION="1.0.0"
+SELECTION="primary"
+MODE="input"
+FILTER=0
+RMLASTNL=0
+VERBOSITY="silent"
+
+print_usage() {
+    cat <<'USAGE'
+Usage: xclip-osc52 [OPTION] [FILE]...
+Copy input to clipboard via OSC 52 escape sequences (xclip-compatible).
+
+  -i, -in          read text from standard input or files (default)
+  -o, -out         print selection to stdout (limited - OSC 52 is write-only)
+  -f               filter mode: copy stdin to selection and echo to stdout
+      -selection   selection to access ("primary", "secondary", "clipboard")
+      -rmlastnl    remove the last newline character if present
+  -h, -help        usage information
+      -version     version information
+      -silent      errors only (default)
+      -quiet       show what's happening
+      -verbose     running commentary
+
+  -d, -display     ignored (no X server needed)
+  -l, -loops       ignored
+      -noutf8      ignored
+      -target      ignored
+USAGE
+}
+
+# Parse arguments - compatible with xclip's flag style
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -i|-in)
+            MODE="input"
+            ;;
+        -o|-out)
+            MODE="output"
+            ;;
+        -f)
+            FILTER=1
+            MODE="input"
+            ;;
+        -selection)
+            shift
+            case "$1" in
+                clipboard|c) SELECTION="clipboard" ;;
+                secondary|s) SELECTION="secondary" ;;
+                primary|p|"") SELECTION="primary" ;;
+                buffer-cut) SELECTION="primary" ;;
+                *) SELECTION="$1" ;;
+            esac
+            ;;
+        -rmlastnl)
+            RMLASTNL=1
+            ;;
+        -d|-display)
+            shift  # consume display arg, ignore
+            ;;
+        -l|-loops)
+            shift  # consume loops arg, ignore
+            ;;
+        -noutf8|-target)
+            shift  # consume arg, ignore
+            ;;
+        -silent)
+            VERBOSITY="silent"
+            ;;
+        -quiet)
+            VERBOSITY="quiet"
+            ;;
+        -verbose)
+            VERBOSITY="verbose"
+            ;;
+        -h|-help|--help)
+            print_usage
+            exit 0
+            ;;
+        -version|--version)
+            echo "xclip-osc52 version $VERSION (OSC 52 shim for xclip)"
+            exit 0
+            ;;
+        -*)
+            # Ignore unknown flags for compatibility
+            ;;
+        *)
+            # Positional args treated as files
+            break
+            ;;
+    esac
+    shift
+done
+
+# Map selection name to OSC 52 target character
+case "$SELECTION" in
+    clipboard)  OSC_TARGET="c" ;;
+    secondary)  OSC_TARGET="s" ;;
+    primary|*)  OSC_TARGET="p" ;;
+esac
+
+if [ "$MODE" = "output" ]; then
+    # OSC 52 paste requires terminal cooperation and is rarely supported
+    if [ "$VERBOSITY" != "silent" ]; then
+        echo "xclip-osc52: output mode (-o) is not supported via OSC 52" >&2
+    fi
+    exit 1
+fi
+
+# Read input from files (positional args) or stdin
+if [ $# -gt 0 ]; then
+    DATA=$(cat "$@")
+else
+    DATA=$(cat)
+fi
+
+# Remove trailing newline if requested
+if [ "$RMLASTNL" -eq 1 ]; then
+    DATA=$(printf '%s' "$DATA" | sed -e 's/\n$//')
+fi
+
+# Filter mode: echo input to stdout
+if [ "$FILTER" -eq 1 ]; then
+    printf '%s' "$DATA"
+fi
+
+# Base64 encode the data
+B64=$(printf '%s' "$DATA" | base64 | tr -d '\n')
+
+# Emit OSC 52 sequence to the terminal
+# Write to /dev/tty to ensure it reaches the terminal emulator
+# even when stdout is redirected
+printf '\033]52;%s;%s\a' "$OSC_TARGET" "$B64" > /dev/tty 2>/dev/null || \
+printf '\033]52;%s;%s\a' "$OSC_TARGET" "$B64"
+
+if [ "$VERBOSITY" = "verbose" ]; then
+    echo "xclip-osc52: sent ${#DATA} bytes to $SELECTION selection via OSC 52" >&2
+elif [ "$VERBOSITY" = "quiet" ]; then
+    echo "xclip-osc52: copied to $SELECTION" >&2
+fi
