@@ -25,6 +25,21 @@ SHIMS = {
 }
 
 
+def _is_our_shim(path) -> bool:
+    """Check whether a file is one of our OSC 52 shim scripts.
+
+    Detection is by content - the shims carry "osc52" in their header.
+    Anything unreadable or binary is by definition not one of ours.
+    """
+    try:
+        with open(path, "r") as f:
+            header = f.read(512)
+    except (OSError, UnicodeDecodeError):
+        # Binary or unreadable - not one of our shell scripts
+        return False
+    return "osc52" in header.lower() or "OSC 52" in header
+
+
 def _tool_is_functional(tool_name: str) -> bool:
     """Check if a clipboard tool is installed and can actually work.
 
@@ -37,16 +52,9 @@ def _tool_is_functional(tool_name: str) -> bool:
     if tool_path is None:
         return False
 
-    # Check if the found tool is already our shim
-    try:
-        with open(tool_path, "r") as f:
-            header = f.read(512)
-            if "osc52" in header.lower() or "OSC 52" in header:
-                # This is our shim from a previous install - not a real tool
-                return False
-    except (OSError, UnicodeDecodeError):
-        # Binary tool (not our shell script shim) - it's real
-        pass
+    if _is_our_shim(tool_path):
+        # This is our shim from a previous install - not a real tool
+        return False
 
     # Check if the tool can plausibly work (has display access)
     # For X11 tools, check DISPLAY; for Wayland, check WAYLAND_DISPLAY
@@ -98,6 +106,7 @@ def install_shims(log=None):
 
     installed = []
     skipped = []
+    refused = []
 
     for shim_name, tool_name in SHIMS.items():
         source = source_dir / shim_name
@@ -113,6 +122,15 @@ def install_shims(log=None):
 
         # Install the shim
         target = target_dir / tool_name
+
+        # Never overwrite a file we did not write. A user's own xclip in
+        # ~/.local/bin would otherwise be destroyed with no way to restore it,
+        # and ~/.local/bin precedes /usr/bin on most distributions - so the
+        # damage would shadow the real tool for the whole desktop session.
+        if (target.exists() or target.is_symlink()) and not _is_our_shim(target):
+            refused.append(tool_name)
+            continue
+
         target_dir.mkdir(parents=True, exist_ok=True)
 
         try:
@@ -137,7 +155,13 @@ def install_shims(log=None):
                 f"[terminal-clipboard] Skipped shims (real tools available): "
                 f"{', '.join(skipped)}"
             )
-        if not installed and not skipped:
+        if refused:
+            log.warning(
+                f"[terminal-clipboard] Refused to overwrite existing files in "
+                f"{target_dir}: {', '.join(refused)}. These are not our shims - "
+                f"remove them by hand if you want OSC 52 clipboard support for them."
+            )
+        if not installed and not skipped and not refused:
             log.debug("[terminal-clipboard] No shims needed or available")
 
     # Check if target_dir is in PATH

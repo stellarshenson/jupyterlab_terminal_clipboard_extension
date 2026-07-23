@@ -17,7 +17,7 @@ Terminal programs running inside JupyterLab normally cannot copy anything to you
 
 - **OSC 52 clipboard interception** - captures clipboard escape sequences from terminal output
 - **Auto-installing shims** - deploys `xclip`, `xsel`, `wl-copy` replacements to `~/.local/bin/` on startup when real tools are not functional (no display server)
-- **Smart detection** - preserves real clipboard tools when they work, only installs shims when needed
+- **Non-destructive install** - only installs shims when the real tools cannot work, and never overwrites a clipboard tool it did not create
 
 ## Installation
 
@@ -49,4 +49,6 @@ The **server plugin** runs on JupyterLab startup and installs lightweight POSIX 
 terminal app -> xclip/xsel (shim) -> OSC 52 escape sequence -> extension -> browser clipboard
 ```
 
-Shims are only installed when the real tools cannot function (no `DISPLAY` or `WAYLAND_DISPLAY` environment variable set). If a real X11 or Wayland clipboard is available, the shims are not deployed and the original tools are preserved.
+Shims are only installed when the real tools cannot function (no `DISPLAY` or `WAYLAND_DISPLAY` environment variable set). If a real X11 or Wayland clipboard is available, the shims are not deployed and the original tools are preserved. An existing file in `~/.local/bin` that is not one of our shims is never overwritten - the installer logs a warning and skips it, so a clipboard tool you placed there yourself stays intact.
+
+Because OSC 52 only reaches the browser through the terminal, the shims write the escape sequence exclusively to `/dev/tty`. When a program calls them without a controlling terminal, they exit non-zero with a message on stderr rather than emitting the sequence to stdout, where it would corrupt the caller's output.

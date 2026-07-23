@@ -29,6 +29,19 @@ FILTER=0
 RMLASTNL=0
 VERBOSITY="silent"
 
+# Emit an OSC 52 sequence to the controlling terminal.
+# The escape is only ever written to /dev/tty - never to stdout. A caller that
+# redirects our output to a file or pipe must receive its own data, not our
+# escape sequence, so a missing terminal is a hard failure rather than a
+# fallback.
+emit_osc52() {
+    if ( printf '\033]52;%s;%s\a' "$1" "$2" > /dev/tty ) 2>/dev/null; then
+        return 0
+    fi
+    echo "xclip-osc52: no controlling terminal - clipboard not updated" >&2
+    exit 1
+}
+
 print_usage() {
     cat <<'USAGE'
 Usage: xclip-osc52 [OPTION] [FILE]...
@@ -151,10 +164,7 @@ fi
 B64=$(printf '%s' "$DATA" | base64 | tr -d '\n')
 
 # Emit OSC 52 sequence to the terminal
-# Write to /dev/tty to ensure it reaches the terminal emulator
-# even when stdout is redirected
-printf '\033]52;%s;%s\a' "$OSC_TARGET" "$B64" > /dev/tty 2>/dev/null || \
-printf '\033]52;%s;%s\a' "$OSC_TARGET" "$B64"
+emit_osc52 "$OSC_TARGET" "$B64"
 
 if [ "$VERBOSITY" = "verbose" ]; then
     echo "xclip-osc52: sent ${#DATA} bytes to $SELECTION selection via OSC 52" >&2

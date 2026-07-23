@@ -70,6 +70,7 @@ htmlcov/
 nosetests.xml
 coverage/
 coverage.xml
+junit.xml
 *.cover
 .hypothesis/
 .pytest_cache/
@@ -126,3 +127,9 @@ dmypy.json
 
 # Yarn cache
 .yarn/
+
+# Project-local node environment (created by make install_dependencies)
+.nodeenv/
+
+# Build/run logs (logs/README.md is tracked)
+logs/*.log
