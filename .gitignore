@@ -133,3 +133,6 @@ dmypy.json
 
 # Build/run logs (logs/README.md is tracked)
 logs/*.log
+
+# Knowledge-graph artefacts (graphify)
+tmp/

@@ -41,7 +41,11 @@ pip uninstall jupyterlab_terminal_clipboard_extension
 
 ## Technical Details
 
-The extension has two components. The **frontend plugin** registers an OSC 52 parser handler on each terminal's xterm.js instance. When a terminal application writes `\033]52;c;<base64>\a`, the handler decodes the payload and writes it to the browser clipboard via `navigator.clipboard.writeText()` with a `document.execCommand('copy')` fallback for HTTP (non-secure) contexts.
+The extension has two components. The **frontend plugin** registers an OSC 52 parser handler on each terminal's xterm.js instance. When a terminal application writes `\033]52;c;<base64>\a`, the handler decodes the payload and writes it to the browser clipboard via `navigator.clipboard.writeText()`, falling back to `document.execCommand('copy')` for HTTP (non-secure) contexts.
+
+Both of those paths need a focused document, and a terminal program emits OSC 52 whenever it likes - routinely while you are in another window. A copy that arrives unfocused is therefore held rather than attempted, and written when focus returns. One copy is held at a time, the newest wins, and a copy that waits longer than 15 seconds is discarded rather than landing on top of something you have copied elsewhere in the meantime. Every outcome is logged, so a copy is never lost silently.
+
+The held copy is written from a `focus` or `visibilitychange` event, which Chrome accepts for a focused tab. Firefox requires a genuine user gesture for clipboard writes and refuses this one, logging the refusal - re-run the command with the tab focused to copy there.
 
 The **server plugin** runs on JupyterLab startup and installs lightweight POSIX shell shims into `~/.local/bin/`. These shims replace `xclip`, `xsel`, and `wl-copy` - the system clipboard tools that terminal programs call. Instead of talking to an X11 display, the shims base64-encode the input and emit an OSC 52 escape sequence to `/dev/tty`, which the frontend plugin then intercepts.
 
