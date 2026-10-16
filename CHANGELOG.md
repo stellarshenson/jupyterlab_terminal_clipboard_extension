@@ -2,6 +2,15 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## [1.0.9] - 2026-10-16
+
+### Changed
+
+- Dependencies upgraded to their current releases
+- Licence metadata moved to the SPDX form (`license = "BSD-3-Clause"` with `license-files`), and the source distribution no longer ships the legacy `setup.py` shim
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## [1.0.8] - 2026-08-19
 
 ### Fixed
@@ -13,8 +22,6 @@
 
 - One copy is held at a time and the newest supersedes the older, matching how the system clipboard itself behaves
 - A held copy older than 15 seconds is discarded rather than landing on top of something copied elsewhere in the meantime
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## [1.0.7] - 2026-07-23
 
