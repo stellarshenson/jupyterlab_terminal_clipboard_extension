@@ -35,6 +35,8 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ## Uninstall
 
+To remove the extension, execute:
+
 ```bash
 pip uninstall jupyterlab_terminal_clipboard_extension
 ```
@@ -56,3 +58,7 @@ terminal app -> xclip/xsel (shim) -> OSC 52 escape sequence -> extension -> brow
 Shims are only installed when the real tools cannot function (no `DISPLAY` or `WAYLAND_DISPLAY` environment variable set). If a real X11 or Wayland clipboard is available, the shims are not deployed and the original tools are preserved. An existing file in `~/.local/bin` that is not one of our shims is never overwritten - the installer logs a warning and skips it, so a clipboard tool you placed there yourself stays intact.
 
 Because OSC 52 only reaches the browser through the terminal, the shims write the escape sequence exclusively to `/dev/tty`. When a program calls them without a controlling terminal, they exit non-zero with a message on stderr rather than emitting the sequence to stdout, where it would corrupt the caller's output.
+
+## Contributing
+
+If you would like to contribute to this extension, please refer to the [Contributing Guide](CONTRIBUTING.md).

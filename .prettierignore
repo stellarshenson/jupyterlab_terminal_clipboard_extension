@@ -5,3 +5,5 @@ tmp
 **/package.json
 !/package.json
 jupyterlab_terminal_clipboard_extension
+eslint.config.mjs
+.venv
