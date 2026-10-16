@@ -7,6 +7,8 @@ import { ITerminalTracker } from '@jupyterlab/terminal';
 
 import { MainAreaWidget, Notification } from '@jupyterlab/apputils';
 
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+
 import { handleOsc52, writeToClipboard } from './clipboard';
 
 const PLUGIN_ID = 'jupyterlab_terminal_clipboard_extension:plugin';
@@ -54,11 +56,14 @@ const plugin: JupyterFrontEndPlugin<void> = {
   description:
     'Jupyterlab extension to handle copy to clipboard actions in a terminal to allow copy to clipboard of the browser/user',
   autoStart: true,
-  optional: [ITerminalTracker],
+  optional: [ITerminalTracker, ITranslator],
   activate: (
     app: JupyterFrontEnd,
-    terminalTracker: ITerminalTracker | null
+    terminalTracker: ITerminalTracker | null,
+    translator: ITranslator | null
   ) => {
+    const trans = (translator ?? nullTranslator).load('jupyterlab');
+
     console.log(
       'JupyterLab extension jupyterlab_terminal_clipboard_extension is activated!'
     );
@@ -67,7 +72,19 @@ const plugin: JupyterFrontEndPlugin<void> = {
     // <a data-commandlinker-command="clipboard:copy-text"
     //    data-commandlinker-args='{"text": "..."}'>
     app.commands.addCommand('clipboard:copy-text', {
-      label: 'Copy Text to Clipboard',
+      label: trans.__('Copy Text to Clipboard'),
+      describedBy: {
+        args: {
+          type: 'object',
+          properties: {
+            text: {
+              type: 'string',
+              description:
+                'The text to write to the clipboard. An empty or absent value leaves the clipboard untouched.'
+            }
+          }
+        }
+      },
       execute: async args => {
         const text = String(args['text'] ?? '');
         if (!text) {

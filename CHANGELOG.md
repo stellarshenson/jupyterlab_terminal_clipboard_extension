@@ -2,14 +2,21 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## [1.0.10] - 2026-10-16
+
+### Fixed
+
+- The `clipboard:copy-text` command now declares the argument it accepts, so tooling that reads a command's signature can describe it instead of showing it as undocumented
+- The command's label is now translatable rather than a fixed English string
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## [1.0.9] - 2026-10-16
 
 ### Changed
 
 - Dependencies upgraded to their current releases
 - Licence metadata moved to the SPDX form (`license = "BSD-3-Clause"` with `license-files`), and the source distribution no longer ships the legacy `setup.py` shim
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## [1.0.8] - 2026-08-19
 
