@@ -102,6 +102,16 @@
         "access": "public"
     },
     "jupyterlab": {
+        "discovery": {
+            "server": {
+                "managers": [
+                    "pip"
+                ],
+                "base": {
+                    "name": "jupyterlab_terminal_clipboard_extension"
+                }
+            }
+        },
         "extension": true,
         "outputDir": "jupyterlab_terminal_clipboard_extension/labextension"
     },
