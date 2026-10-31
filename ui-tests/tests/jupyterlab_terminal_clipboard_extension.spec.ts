@@ -19,7 +19,7 @@ test('should emit an activation console message', async ({ page }) => {
     logs.filter(
       s =>
         s ===
-        'JupyterLab extension jupyterlab_terminal_clipboard_extension is activated!'
+        'JupyterLab extension @stellarshenson/jupyterlab-terminal-clipboard-extension is activated!'
     )
   ).toHaveLength(1);
 });

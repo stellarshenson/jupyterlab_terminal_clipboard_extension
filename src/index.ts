@@ -11,7 +11,8 @@ import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 
 import { handleOsc52, writeToClipboard } from './clipboard';
 
-const PLUGIN_ID = 'jupyterlab_terminal_clipboard_extension:plugin';
+const PLUGIN_ID =
+  '@stellarshenson/jupyterlab-terminal-clipboard-extension:plugin';
 
 export { base64Decode, handleOsc52, writeToClipboard } from './clipboard';
 
@@ -49,7 +50,7 @@ function attachOsc52Handler(widget: MainAreaWidget): void {
 }
 
 /**
- * Initialization data for the jupyterlab_terminal_clipboard_extension extension.
+ * Initialization data for the @stellarshenson/jupyterlab-terminal-clipboard-extension extension.
  */
 const plugin: JupyterFrontEndPlugin<void> = {
   id: PLUGIN_ID,
@@ -65,7 +66,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const trans = (translator ?? nullTranslator).load('jupyterlab');
 
     console.log(
-      'JupyterLab extension jupyterlab_terminal_clipboard_extension is activated!'
+      'JupyterLab extension @stellarshenson/jupyterlab-terminal-clipboard-extension is activated!'
     );
 
     // Generic copy-to-clipboard command, invokable from rendered markdown via

@@ -8,7 +8,8 @@
  * the document was unfocused, until focus comes back (see `deferUntilFocused`).
  */
 
-const LOG_PREFIX = '[jupyterlab_terminal_clipboard_extension:plugin]';
+const LOG_PREFIX =
+  '[@stellarshenson/jupyterlab-terminal-clipboard-extension:plugin]';
 
 /**
  * Decode a base64 string to UTF-8 text.

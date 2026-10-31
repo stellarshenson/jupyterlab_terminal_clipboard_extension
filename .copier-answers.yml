@@ -8,7 +8,7 @@ has_ai_rules: false
 has_binder: false
 has_settings: false
 kind: frontend
-labextension_name: jupyterlab_terminal_clipboard_extension
+labextension_name: '@stellarshenson/jupyterlab-terminal-clipboard-extension'
 project_short_description: Jupyterlab extension to handle copy to clipboard actions
     in a terminal to allow copy to clipboard of the browser/user
 python_name: jupyterlab_terminal_clipboard_extension
