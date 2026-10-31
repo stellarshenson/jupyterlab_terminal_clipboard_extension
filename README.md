@@ -21,7 +21,7 @@ Terminal programs running inside JupyterLab normally cannot copy anything to you
 
 ## Installation
 
-Requires JupyterLab 4.0.0 or higher.
+Requires JupyterLab 4.6.0 or higher.
 
 ```bash
 pip install jupyterlab_terminal_clipboard_extension

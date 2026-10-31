@@ -136,3 +136,6 @@ logs/*.log
 
 # Knowledge-graph artefacts (graphify)
 tmp/
+
+# Run output
+logs/

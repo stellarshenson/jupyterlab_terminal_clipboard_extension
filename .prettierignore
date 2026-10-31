@@ -7,3 +7,5 @@ tmp
 jupyterlab_terminal_clipboard_extension
 eslint.config.mjs
 .venv
+.claude
+.agents
