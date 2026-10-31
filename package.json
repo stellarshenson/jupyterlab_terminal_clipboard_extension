@@ -1,6 +1,6 @@
 {
     "name": "@stellarshenson/jupyterlab-terminal-clipboard-extension",
-    "version": "1.0.12",
+    "version": "1.0.13",
     "description": "Jupyterlab extension to handle copy to clipboard actions in a terminal to allow copy to clipboard of the browser/user",
     "keywords": [
         "jupyter",
@@ -75,6 +75,7 @@
         "eslint-plugin-prettier": "^5.5.0",
         "globals": "^15.15.0",
         "jest": "^29.7.0",
+        "mkdirp": "^1.0.3",
         "npm-run-all2": "^7.0.1",
         "prettier": "^3.9.0",
         "rimraf": "^5.0.1",

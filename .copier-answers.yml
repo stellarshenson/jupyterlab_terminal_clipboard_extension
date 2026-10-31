@@ -7,11 +7,11 @@ author_name: Stellars Henson
 has_ai_rules: false
 has_binder: false
 has_settings: false
-kind: frontend
+kind: frontend-and-server
 labextension_name: '@stellarshenson/jupyterlab-terminal-clipboard-extension'
 project_short_description: Jupyterlab extension to handle copy to clipboard actions
     in a terminal to allow copy to clipboard of the browser/user
 python_name: jupyterlab_terminal_clipboard_extension
-repository: ''
+repository: https://github.com/stellarshenson/jupyterlab_terminal_clipboard_extension
 test: true
 

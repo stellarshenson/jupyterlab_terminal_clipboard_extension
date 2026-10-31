@@ -47,7 +47,7 @@ clipboard API, enabling copy operations from terminal programs to work in the br
 
 - **Technology stack**: TypeScript, JupyterLab 4 extension API, Lumino widgets
 - **Build system**: Makefile (v1.46), hatchling (Python), jlpm/rspack (TypeScript)
-- **Package name (npm)**: `jupyterlab_terminal_clipboard_extension`
+- **Package name (npm)**: `@stellarshenson/jupyterlab-terminal-clipboard-extension`
 - **Package name (PyPI)**: `jupyterlab-terminal-clipboard-extension`
 - **GitHub owner**: `stellarshenson`
 - **Scaffolding**: copier template `jupyterlab/extension-template`; answers in `.copier-answers.yml`, which is never hand-edited - update with `copier update --trust --skip-answered --defaults`
