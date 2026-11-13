@@ -11,7 +11,14 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# The shims live once, in the Python package, which ships them
+SHIM_DIR="$(cd "$(dirname "$0")/../jupyterlab_terminal_clipboard_extension/tools" && pwd)"
+
+# A shim is recognised by its content, or by the link target of a symlink
+is_our_shim() {
+    grep -q "osc52\|OSC 52" "$1" 2>/dev/null || \
+        { [ -L "$1" ] && readlink "$1" | grep -q "osc52"; }
+}
 DEFAULT_TARGET="$HOME/.local/bin"
 
 print_usage() {
@@ -43,7 +50,7 @@ do_install() {
     mkdir -p "$TARGET"
 
     for shim in xclip-osc52 xsel-osc52 wl-copy-osc52; do
-        src="$SCRIPT_DIR/$shim"
+        src="$SHIM_DIR/$shim"
         # Derive the original tool name (strip -osc52 suffix)
         tool_name=$(echo "$shim" | sed 's/-osc52$//')
         dst="$TARGET/$tool_name"
@@ -53,7 +60,11 @@ do_install() {
             continue
         fi
 
-        # Remove existing target
+        # Never replace a file this script or the extension did not install
+        if { [ -e "$dst" ] || [ -L "$dst" ]; } && ! is_our_shim "$dst"; then
+            echo "Skipping $dst (exists and is not an OSC 52 shim)" >&2
+            continue
+        fi
         rm -f "$dst"
 
         if [ "$USE_SYMLINK" -eq 1 ]; then
@@ -89,8 +100,7 @@ do_uninstall() {
         dst="$TARGET/$tool_name"
         if [ -L "$dst" ] || [ -f "$dst" ]; then
             # Verify it's our shim before removing
-            if grep -q "osc52\|OSC 52" "$dst" 2>/dev/null || \
-               [ -L "$dst" ] && readlink "$dst" | grep -q "osc52"; then
+            if is_our_shim "$dst"; then
                 rm -f "$dst"
                 echo "Removed $dst"
             else

@@ -78,14 +78,14 @@ while [ $# -gt 0 ]; do
             FILTER=1
             MODE="input"
             ;;
-        -selection)
+        -sel*)
+            # xclip takes any unambiguous prefix (-sel) and reads only the
+            # first letter of the value (clip)
             shift
             case "$1" in
-                clipboard|c) SELECTION="clipboard" ;;
-                secondary|s) SELECTION="secondary" ;;
-                primary|p|"") SELECTION="primary" ;;
-                buffer-cut) SELECTION="primary" ;;
-                *) SELECTION="$1" ;;
+                c*) SELECTION="clipboard" ;;
+                s*) SELECTION="secondary" ;;
+                *) SELECTION="primary" ;;
             esac
             ;;
         -rmlastnl)
@@ -97,8 +97,8 @@ while [ $# -gt 0 ]; do
         -l|-loops)
             shift  # consume loops arg, ignore
             ;;
-        -noutf8|-target)
-            shift  # consume arg, ignore
+        -t*)
+            shift  # consume the target type, ignore
             ;;
         -silent)
             VERBOSITY="silent"

@@ -13,7 +13,6 @@ the browser clipboard API.
 import os
 import shutil
 import stat
-import subprocess
 from pathlib import Path
 
 
@@ -68,26 +67,6 @@ def _tool_is_functional(tool_name: str) -> bool:
     return True
 
 
-def _get_shim_source_dir() -> Path:
-    """Get the directory containing the shim scripts."""
-    # Shims are in the tools/ directory relative to the project root,
-    # but when installed as a package they're in the package data directory
-    package_dir = Path(__file__).parent
-    # First check if shims are bundled as package data
-    bundled = package_dir / "tools"
-    if bundled.is_dir():
-        return bundled
-    # Fall back to project root tools/ dir (development mode)
-    project_root = package_dir.parent
-    tools_dir = project_root / "tools"
-    if tools_dir.is_dir():
-        return tools_dir
-    raise FileNotFoundError(
-        "Could not find clipboard shim scripts. "
-        "Expected in package data or project tools/ directory."
-    )
-
-
 def install_shims(log=None):
     """Install OSC 52 clipboard shims to ~/.local/bin/.
 
@@ -97,12 +76,7 @@ def install_shims(log=None):
     """
     target_dir = Path.home() / ".local" / "bin"
 
-    try:
-        source_dir = _get_shim_source_dir()
-    except FileNotFoundError as e:
-        if log:
-            log.warning(f"[terminal-clipboard] {e}")
-        return
+    source_dir = Path(__file__).parent / "tools"
 
     installed = []
     skipped = []
@@ -131,9 +105,8 @@ def install_shims(log=None):
             refused.append(tool_name)
             continue
 
-        target_dir.mkdir(parents=True, exist_ok=True)
-
         try:
+            target_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(str(source), str(target))
             # Ensure executable
             target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
