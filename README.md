@@ -45,7 +45,7 @@ pip uninstall jupyterlab_terminal_clipboard_extension
 
 ## Technical Details
 
-The extension has two components. The **frontend plugin** registers an OSC 52 parser handler on each terminal's xterm.js instance. When a terminal application writes `\033]52;c;<base64>\a`, the handler decodes the payload and writes it to the browser clipboard via `navigator.clipboard.writeText()`, falling back to `document.execCommand('copy')` for HTTP (non-secure) contexts.
+The extension has two components. The **frontend plugin** registers an OSC 52 parser handler on each terminal's xterm.js instance. When a terminal application writes `\033]52;c;<base64>\a`, the handler decodes the payload and writes it to the browser clipboard via `navigator.clipboard.writeText()`, falling back to `document.execCommand('copy')` for HTTP (non-secure) contexts. An OSC 52 sequence in the output the server resends after a page reload or reconnect is ignored.
 
 Both of those paths need a focused document, and a terminal program emits OSC 52 whenever it likes - routinely while you are in another window. A copy that arrives unfocused is therefore held rather than attempted, and written when focus returns. One copy is held at a time, the newest wins, and a copy that waits longer than 15 seconds is discarded rather than landing on top of something you have copied elsewhere in the meantime. Every outcome is logged, so a copy is never lost silently.
 

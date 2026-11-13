@@ -80,6 +80,7 @@ def test_unwritable_home_does_not_raise(home):
     [
         "xclip-osc52 -selection clipboard",
         "xclip-osc52 -sel clip",
+        "xclip-osc52 -se c",
         "xclip-osc52 -selection clipboard -t text/plain",
         "xsel-osc52 --clipboard --input",
         "wl-copy-osc52",

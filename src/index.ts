@@ -22,24 +22,73 @@ export { base64Decode, handleOsc52, writeToClipboard } from './clipboard';
  */
 function attachOsc52Handler(widget: MainAreaWidget): void {
   const terminal = widget.content;
+  const session = (terminal as any).session;
+  let xterm: any = null;
+  let disposable: { dispose(): void } | null = null;
+
+  // After every (re)connect the server resends its whole output buffer as the
+  // first stdout message. An OSC 52 in it is an old copy: writing it again
+  // would replace what the user has copied since.
+  // shortcut: the first output of a new terminal is also taken as resent, fix when the server marks what it resends
+  let replay = true;
+  // The resent buffer arrived before xterm was ready
+  let resent = false;
+  // xterm runs write callbacks in queue order, so the flag clears only after
+  // everything queued before it is parsed.
+  const endReplay = () =>
+    xterm.write('', () => {
+      replay = false;
+    });
+  const onStatus = (_sender: unknown, status: string) => {
+    if (status === 'connected') {
+      replay = true;
+    }
+  };
+  const onMessage = (_sender: unknown, msg: { type: string }) => {
+    if (!replay || msg.type !== 'stdout') {
+      return;
+    }
+    if (xterm) {
+      // A microtask, so the widget's own slot has queued the message first
+      queueMicrotask(endReplay);
+    } else {
+      resent = true;
+    }
+  };
+  // Connected before the first message can arrive, not inside ready.then:
+  // 'connected' alone does not tell whether the resent buffer has come yet.
+  session.connectionStatusChanged.connect(onStatus);
+  session.messageReceived.connect(onMessage);
+
+  // Clean up when widget is disposed
+  widget.disposed.connect(() => {
+    disposable?.dispose();
+    session.connectionStatusChanged.disconnect(onStatus);
+    session.messageReceived.disconnect(onMessage);
+  });
 
   // Wait for the terminal to be ready before accessing xterm internals
   (terminal as any).ready
     .then(() => {
-      const xterm = (terminal as any)._term;
+      xterm = (terminal as any)._term;
       if (!xterm || !xterm.parser) {
         console.warn(
           `[${PLUGIN_ID}] Could not access xterm.js instance for terminal`
         );
         return;
       }
+      if (resent) {
+        // The widget has just queued the output it buffered while waiting
+        endReplay();
+      }
 
       // Register OSC 52 handler on the xterm.js parser
-      const disposable = xterm.parser.registerOscHandler(52, handleOsc52);
-
-      // Clean up when widget is disposed
-      widget.disposed.connect(() => {
-        disposable.dispose();
+      disposable = xterm.parser.registerOscHandler(52, (data: string) => {
+        if (replay) {
+          console.debug(`[${PLUGIN_ID}] replayed OSC 52 ignored`);
+          return true;
+        }
+        return handleOsc52(data);
       });
 
       console.debug(`[${PLUGIN_ID}] OSC 52 handler attached to terminal`);

@@ -74,11 +74,11 @@ while [ $# -gt 0 ]; do
         -o|-out)
             MODE="output"
             ;;
-        -f)
+        -f*)
             FILTER=1
             MODE="input"
             ;;
-        -sel*)
+        -se|-sel*)
             # xclip takes any unambiguous prefix (-sel) and reads only the
             # first letter of the value (clip)
             shift

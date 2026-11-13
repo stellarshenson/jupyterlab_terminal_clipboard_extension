@@ -35,6 +35,13 @@ The xclip, xsel and wl-copy replacements that emit OSC 52
   - log: 2026-11-13T09:45:44Z @kj added
   - log: 2026-11-13T09:47:05Z @kj closed
   - log: 2026-11-13T09:47:10Z @kj edited test-tags added "MANUAL"
+- [x] `DEF-SHIM-10-XCLIP-PREFIX` **xclip shim misses the prefixes -se and -filter** - MINOR; `echo hello | xclip -se c` prints 'cat: c: No such file or directory' and sends an empty OSC 52, a clear request, exit 0; `-filter` copies but echoes nothing to stdout; real xclip takes any unambiguous prefix; `jupyterlab_terminal_clipboard_extension/tools/xclip-osc52`
+  - evidence: case arms are -se|-sel* and -f*; pytest test_shim_sends_the_copy_to_the_terminal[xclip-osc52 -se c] passes; build_test.py 2026-11-13 at 1.0.19: Jest 31, pytest 12, Galata 2 passed
+  - repro: under a pty: echo hello | jupyterlab_terminal_clipboard_extension/tools/xclip-osc52 -se c
+  - test-tags: UNIT
+  - root-cause: 2026-11-13T18:17:12Z @kj the case arms were -sel* and -f, so -se and -fi... -filter fell to the ignore-unknown arm
+  - log: 2026-11-13T18:17:12Z @kj added
+  - log: 2026-11-13T18:28:38Z @kj closed
 
 ## Shim installers `SETUP`
 
@@ -85,3 +92,11 @@ The frontend write of a copy to the browser clipboard
   - log: 2026-11-13T09:45:44Z @kj added
   - log: 2026-11-13T09:47:04Z @kj closed
   - log: 2026-11-13T09:47:10Z @kj edited test-tags added "MANUAL"
+- [x] `DEF-COPY-9-REPLAY` **Old terminal copy written again after a page reload** - MEDIUM; after a page reload or websocket reconnect the server resends the terminal output buffer; an OSC 52 in it is written to the browser clipboard again and replaces what the user copied since; `src/index.ts`
+  - evidence: OSC 52 ignored until the first stdout of each connection is parsed; Galata 'should not copy again an OSC 52 the server resends after a reload' failed at 3131b9d with 'first', passes 12 of 12 repeats; build_test.py 2026-11-13 at 1.0.19: Jest 31, pytest 12, Galata 2
+  - repro: in a terminal run printf '\033]52;c;Zmlyc3Q=\a', copy other text in the browser, reload the page: the clipboard holds 'first' again
+  - test-tags: E2E
+  - root-cause: 2026-11-13T18:17:12Z @kj terminado sends its whole read_buffer as the first stdout message of every websocket open, and attachOsc52Handler passed every OSC 52 to handleOsc52
+  - log: 2026-11-13T18:17:12Z @kj added
+  - log: 2026-11-13T18:28:37Z @kj attempted: gate connected inside ready.then, replay ended at attach when the status was connected; Galata copied again in 4 of 9 runs, the status was connected before the resent buffer came in 3 of 10 runs
+  - log: 2026-11-13T18:28:42Z @kj closed
