@@ -66,10 +66,12 @@ export async function writeToClipboard(text: string): Promise<boolean> {
     textarea.style.position = 'fixed';
     textarea.style.left = '-9999px';
     textarea.style.top = '-9999px';
+    const previous = document.activeElement as HTMLElement | null;
     document.body.appendChild(textarea);
     textarea.select();
     const success = document.execCommand('copy');
     document.body.removeChild(textarea);
+    previous?.focus();
     if (!success) {
       // execCommand refuses by returning false rather than throwing, so the
       // catch below never sees it. Unlogged, the copy would vanish silently.

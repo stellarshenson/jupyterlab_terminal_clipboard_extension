@@ -27,6 +27,14 @@ The xclip, xsel and wl-copy replacements that emit OSC 52
   - log: 2026-11-13T09:19:43Z @kj added
   - log: 2026-11-13T09:19:56Z @kj edited test-tags added "MANUAL"
   - log: 2026-11-13T09:26:29Z @kj closed
+- [x] `DEF-SHIM-8-TMUX-SETTING` **README names tmux and omits the setting it needs** - MINOR; inside tmux with the default `set-clipboard external` tmux discards an OSC 52 written by a program in a pane, and the shim still exits 0; the README lists tmux as supported and gives no setting; `README.md`
+  - test-tags: MANUAL
+  - evidence: README Installation section states that tmux needs 'set -g set-clipboard on' and that the shim exits 0 without it
+  - repro: in tmux with no set-clipboard line in ~/.tmux.conf run 'echo x | xclip; echo $?': prints 0 and the browser clipboard is unchanged
+  - root-cause: 2026-11-13T09:45:44Z @kj the README stated tmux support without the tmux option that forwards a pane's OSC 52 to the outer terminal
+  - log: 2026-11-13T09:45:44Z @kj added
+  - log: 2026-11-13T09:47:05Z @kj closed
+  - log: 2026-11-13T09:47:10Z @kj edited test-tags added "MANUAL"
 
 ## Shim installers `SETUP`
 
@@ -62,3 +70,18 @@ install_shims at server start and tools/install-osc52-shims.sh
   - test-tags: UNIT
   - log: 2026-11-13T09:19:56Z @kj added
   - log: 2026-11-13T09:26:29Z @kj closed
+
+## Browser clipboard write `COPY`
+
+The frontend write of a copy to the browser clipboard
+
+- log: 2026-11-13T09:45:44Z @kj category created
+
+- [x] `DEF-COPY-7-FALLBACK-FOCUS` **execCommand fallback takes keyboard focus from the terminal** - MEDIUM; on plain http on a non-localhost host navigator.clipboard is absent, so every copy goes through the hidden textarea; `textarea.select()` focuses it and removing it leaves focus on body, so the next keystroke does not reach the terminal until the user clicks it; `src/clipboard.ts`
+  - test-tags: MANUAL
+  - evidence: writeToClipboard reads document.activeElement before the textarea is appended and focuses it after the removal; build_test.py 2026-11-13 at 1.0.18: Jest 31, pytest 11, Galata 1 passed
+  - repro: open the lab over http://<host>:8888, run 'echo x | xclip' in a terminal, type: the keys do not reach the terminal
+  - root-cause: 2026-11-13T09:45:44Z @kj the fallback selected a temporary textarea and never returned focus to the element that had it
+  - log: 2026-11-13T09:45:44Z @kj added
+  - log: 2026-11-13T09:47:04Z @kj closed
+  - log: 2026-11-13T09:47:10Z @kj edited test-tags added "MANUAL"

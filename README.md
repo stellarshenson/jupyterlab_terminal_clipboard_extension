@@ -33,6 +33,8 @@ Ensure `~/.local/bin` is in your PATH for the shims to work:
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
+Inside tmux, a copy made by a program in a pane (`xclip`, `xsel`, `wl-copy` or raw OSC 52) reaches the browser only when `set -g set-clipboard on` is in `~/.tmux.conf`; with the tmux default (`external`) tmux discards it and the shim still exits 0.
+
 ## Uninstall
 
 To remove the extension, execute:
