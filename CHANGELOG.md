@@ -2,6 +2,18 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## [1.0.20] - 2026-11-15
+
+### Changed
+
+- Skip the PayPal donate link in the link check
+
+### Fixed
+
+- Ignore a resent OSC 52 after a reload and take the xclip prefixes -se and -filter
+- Return focus after the execCommand copy and document the tmux setting
+- Keep abbreviated xclip options, foreign files and one copy of the shims
+
 ## [1.0.16] - 2026-10-31
 
 ### Changed
